@@ -1,4 +1,4 @@
-export interface IToDos {
+export interface IToDo {
     name: string;
     status: 'doing'|'completed'|'invalid';
 }

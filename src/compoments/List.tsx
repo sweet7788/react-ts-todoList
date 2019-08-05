@@ -2,15 +2,16 @@ import * as React from 'react'
 
 import './list.styl'
 
-import { ITab, IToDos } from '../interface'
+import { ITab, IToDo } from '../interface'
 
 interface IProps {
     name?: string;
     age?: number;
     content?: string;
-    tasklist : IToDos[]
+    tasklist : IToDo[]
     className? : string;
     onTab?: (e: ITab) =>void
+    onStatusChange?: (status: IToDo["name"],key: number)=>void
 }
 // interface ITabs {
 //     name:  '全部'|'已完成'|'未完成'
@@ -18,7 +19,8 @@ interface IProps {
 // }
 interface IState {
     currentIndex : number
-    tabs : ITab[]
+    tabs : ITab[],
+    activeIndex? : number
 }
 
 export default class List extends React.Component<IProps,IState> {
@@ -36,21 +38,24 @@ export default class List extends React.Component<IProps,IState> {
                 },{
                     name: '未完成',
                     value: 'doing'
-                }]
+                }],
         } as IState
         
         this.tabClick = this.tabClick.bind(this)
+        this.itemClick = this.itemClick.bind(this)
+        this.signFinished = this.signFinished.bind(this)
     }
     
     public render(){
         const tabsClass = 'btn flex-grow-1'
+        const itemClass = 'd-flex mt-2 justify-content-between border rounded px-3 py-2 list-item'
         return (
             <div>
                 <div className="tab d-flex mt-3">
                     {
                         Array.isArray(this.state.tabs) ? this.state.tabs.map((ele,ind)=>{
                             return (
-                                <div onClick={ this.tabClick } key={ind} className={this.state.currentIndex === ind ? tabsClass + ' active' : tabsClass}>
+                                <div onClick={ this.tabClick.bind(this,ele as ITab) } key={ind} className={this.state.currentIndex === ind ? tabsClass + ' active' : tabsClass}>
                                     { ele.name as string }
                                 </div>
                             )
@@ -60,7 +65,7 @@ export default class List extends React.Component<IProps,IState> {
                 {
                     this.props.tasklist.length>0 ?this.props.tasklist.map((ele,ind)=>{
                         return (
-                            <div className="d-flex mt-2 justify-content-between border rounded px-3 py-2" key = {ind}>
+                            <div className={typeof(this.state.activeIndex) === 'number'&&this.state.activeIndex === ind ? itemClass + ' active' : itemClass} key = {ind} onClick= {this.itemClick.bind(this,ele as IToDo,ind as number)}>
                                 <div>
                                     { ele.name }
                                 </div>
@@ -71,16 +76,16 @@ export default class List extends React.Component<IProps,IState> {
                         )
                     }):''
                 }
-                <div className="myBtn px-2 mt-2">
+                <div className="myBtn px-2 mt-2" onClick= {this.signFinished}>
                     标记完成
                 </div>
             </div>
         )
     }
-    public tabClick(e:React.MouseEvent){
+    public tabClick(tab : ITab){
         this.setState({
             currentIndex: this.state.tabs.findIndex((ele,ind)=>{
-                if(ele.name === e.currentTarget.innerHTML){
+                if(ele.name === tab.name){
                     return true
                 }else{
                     return false
@@ -92,4 +97,20 @@ export default class List extends React.Component<IProps,IState> {
             }
         })
     }
+    public signFinished(){
+        if(typeof(this.state.currentIndex) === 'number'){
+            const onStatusChange = this.props.onStatusChange
+            const index = this.state.activeIndex
+            if(onStatusChange){
+                onStatusChange('completed',typeof(index) === 'number' ? index : -1)
+            }
+        }
+    }
+    private itemClick(item: IToDo, ind: number){
+        // console.log(item)
+        this.setState({
+            activeIndex : ind
+        })
+    }
+    
 }

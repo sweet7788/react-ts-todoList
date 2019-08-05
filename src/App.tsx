@@ -2,7 +2,7 @@ import * as React from 'react';
 import './App.styl';
 import './bootstrap.css';
 
-import { ITab, IToDos } from './interface'
+import { ITab, IToDo } from './interface'
 
 import Input from './compoments/Input'
 import List from './compoments/List'
@@ -11,8 +11,8 @@ import List from './compoments/List'
 interface IState {
   tabName: string
   taskName: string
-  tasklist: IToDos[]
-  allTaskList: IToDos[]
+  tasklist: IToDo[]
+  allTaskList: IToDo[]
 }
 
 class App extends React.Component<object,IState> {
@@ -30,7 +30,7 @@ class App extends React.Component<object,IState> {
     this.addTask = this.addTask.bind(this)
     this.clearTask = this.clearTask.bind(this)
     this.onTab = this.onTab.bind(this)
-
+    this.onStatusChange = this.onStatusChange.bind(this)
   }
   public render() {
     return (
@@ -46,44 +46,57 @@ class App extends React.Component<object,IState> {
           </div>
         </div>
         <div>
-          <List tasklist={this.state.tasklist} onTab={this.onTab}/>
+          <List tasklist={this.state.tasklist} onTab={this.onTab} onStatusChange={ this.onStatusChange }/>
         </div>
       </div>
     );
   }
   public onInput(e: React.FormEvent<HTMLInputElement>){
     this.setState({
-      taskName: e.currentTarget.value
+      taskName: e.currentTarget.value as string
     })
   }
   public onTab(tab: ITab){
-    const list = this.state.allTaskList.filter(ele=>{
+    const list : IToDo[] = this.state.allTaskList.filter(ele=>{
       return ele.status === tab.value || tab.value === 'all'
     })
     this.setState({
-      tabName: tab.value,
-      tasklist: list as IToDos[]
+      tabName: tab.value as string,
+      tasklist: list as IToDo[]
+    })
+  }
+  public onStatusChange(status: IToDo["status"],key : number){
+    const allTaskList = this.state.allTaskList
+    const tasklist = this.state.tasklist
+    tasklist[key].status = status
+    allTaskList[key].status = status
+    this.setState({
+      allTaskList,
+      tasklist
     })
   }
   private addTask(){
-    const list = this.state.tasklist
-    list.push({
-      name:this.state.taskName,
-      status: 'doing'
-    })
-    this.setState({
-      allTaskList: list as IToDos[],
-      tasklist: list as IToDos[]
-    })
+    const list : IToDo[] = this.state.tasklist
+    const name : string = this.state.taskName
+    if(name.length !== 0){
+      list.push({
+        name,
+        status: 'doing'
+      })
+      this.setState({
+        allTaskList: list as IToDo[],
+        tasklist: list as IToDo[]
+      })
+    }
   }
   private clearTask(){
     const tabName: string = this.state.tabName
-    const arr: IToDos[] = this.state.tasklist.filter(ele=>{
-      return ele.status === tabName
+    const arr: IToDo[] = this.state.tasklist.filter(ele=>{
+      return ele.status !== tabName
     })
     this.setState({
-      allTaskList: arr as IToDos[],
-      tasklist: arr as IToDos[]
+      allTaskList: arr as IToDo[],
+      tasklist: arr as IToDo[]
     })
   }
 }
