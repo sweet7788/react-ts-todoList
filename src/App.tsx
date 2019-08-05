@@ -2,14 +2,17 @@ import * as React from 'react';
 import './App.styl';
 import './bootstrap.css';
 
+import { ITab, IToDos } from './interface'
+
 import Input from './compoments/Input'
 import List from './compoments/List'
 
-import { IToDos } from './interface'
 
 interface IState {
+  tabName: string
   taskName: string
   tasklist: IToDos[]
+  allTaskList: IToDos[]
 }
 
 class App extends React.Component<object,IState> {
@@ -17,12 +20,16 @@ class App extends React.Component<object,IState> {
     super(props)
     
     this.state = {
+      allTaskList: [],
+      tabName: '全部',
       taskName: '',
-      tasklist: []
+      tasklist: [],
+      
     } as IState
     this.onInput = this.onInput.bind(this)
     this.addTask = this.addTask.bind(this)
     this.clearTask = this.clearTask.bind(this)
+    this.onTab = this.onTab.bind(this)
 
   }
   public render() {
@@ -39,7 +46,7 @@ class App extends React.Component<object,IState> {
           </div>
         </div>
         <div>
-          <List tasklist={this.state.tasklist} />
+          <List tasklist={this.state.tasklist} onTab={this.onTab}/>
         </div>
       </div>
     );
@@ -49,6 +56,15 @@ class App extends React.Component<object,IState> {
       taskName: e.currentTarget.value
     })
   }
+  public onTab(tab: ITab){
+    const list = this.state.allTaskList.filter(ele=>{
+      return ele.status === tab.value || tab.value === 'all'
+    })
+    this.setState({
+      tabName: tab.value,
+      tasklist: list as IToDos[]
+    })
+  }
   private addTask(){
     const list = this.state.tasklist
     list.push({
@@ -56,13 +72,18 @@ class App extends React.Component<object,IState> {
       status: 'doing'
     })
     this.setState({
+      allTaskList: list as IToDos[],
       tasklist: list as IToDos[]
     })
   }
   private clearTask(){
-    // console.log('a')
+    const tabName: string = this.state.tabName
+    const arr: IToDos[] = this.state.tasklist.filter(ele=>{
+      return ele.status === tabName
+    })
     this.setState({
-      tasklist: []
+      allTaskList: arr as IToDos[],
+      tasklist: arr as IToDos[]
     })
   }
 }

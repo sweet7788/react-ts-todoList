@@ -1,8 +1,8 @@
 import * as React from 'react'
 
-import { IToDos } from '../interface'
-
 import './list.styl'
+
+import { ITab, IToDos } from '../interface'
 
 interface IProps {
     name?: string;
@@ -10,10 +10,15 @@ interface IProps {
     content?: string;
     tasklist : IToDos[]
     className? : string;
+    onTab?: (e: ITab) =>void
 }
+// interface ITabs {
+//     name:  '全部'|'已完成'|'未完成'
+//     value: 'all'|'completed'|'doing'
+// }
 interface IState {
     currentIndex : number
-    tabsName : string[]
+    tabs : ITab[]
 }
 
 export default class List extends React.Component<IProps,IState> {
@@ -21,7 +26,17 @@ export default class List extends React.Component<IProps,IState> {
         super(props)
         this.state  = {
             currentIndex : 0,
-            tabsName: ['全部','已完成','未完成']
+            tabs: [
+                {
+                    name: '全部',
+                    value: 'all'
+                },{
+                    name: '已完成',
+                    value: 'completed'
+                },{
+                    name: '未完成',
+                    value: 'doing'
+                }]
         } as IState
         
         this.tabClick = this.tabClick.bind(this)
@@ -33,10 +48,10 @@ export default class List extends React.Component<IProps,IState> {
             <div>
                 <div className="tab d-flex mt-3">
                     {
-                        Array.isArray(this.state.tabsName) ? this.state.tabsName.map((ele,ind)=>{
+                        Array.isArray(this.state.tabs) ? this.state.tabs.map((ele,ind)=>{
                             return (
                                 <div onClick={ this.tabClick } key={ind} className={this.state.currentIndex === ind ? tabsClass + ' active' : tabsClass}>
-                                    { ele }
+                                    { ele.name as string }
                                 </div>
                             )
                         }):''
@@ -64,7 +79,17 @@ export default class List extends React.Component<IProps,IState> {
     }
     public tabClick(e:React.MouseEvent){
         this.setState({
-            currentIndex: this.state.tabsName.indexOf(e.currentTarget.innerHTML)
+            currentIndex: this.state.tabs.findIndex((ele,ind)=>{
+                if(ele.name === e.currentTarget.innerHTML){
+                    return true
+                }else{
+                    return false
+                }
+            })
+        },()=>{
+            if(this.props.onTab){
+                this.props.onTab(this.state.tabs[this.state.currentIndex] as ITab)
+            }
         })
     }
 }
